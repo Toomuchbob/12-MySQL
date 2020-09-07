@@ -55,6 +55,71 @@ function view() {
     });
 };
 
+function add() {
+    inq.prompt([
+        {
+            type: "list",
+            message: "Select which table to add to:",
+            name: "add",
+            choices: ["Employees", "Roles", "Departments"]
+        }
+    ]).then(response => {
+        switch (response.add) {
+            case "Employees":
+                connection.query("SELECT * FROM role", (err, res) => {
+                    if (err) throw err;
+                    const roles = res.map(e => e.title);
+
+                    inq.prompt([
+                        {
+                            type: "input",
+                            message: "Enter First Name: ",
+                            name: "first_name"
+                        }, {
+                            type: "input",
+                            message: "Enter Last Name: ",
+                            name: "last_name"
+                        }, {
+                            type: "list",
+                            message: "Select a role: ",
+                            name: "title",
+                            choices: roles
+                        }
+                    ]).then(data => {
+                        const role = res.filter(e => {
+                            if (e.title === data.title) {
+                                return e.id;
+                            };
+                        });
+                        connection.query("INSERT INTO employee SET ?",
+                            {
+                                first_name: data.first_name,
+                                last_name: data.last_name,
+                                role_id: role[0].id
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                            });
+                    });
+                });
+                break;
+            case "Roles":
+                connection.query("SELECT * FROM role", function (err, res) {
+                    if (err) throw err;
+                    console.table(res);
+                    prompt();
+                });
+                break;
+            case "Departments":
+                connection.query("SELECT * FROM department", function (err, res) {
+                    if (err) throw err;
+                    console.table(res);
+                    prompt();
+                });
+                break;
+        };
+    });
+};
 
 function prompt() {
     inq.prompt([
@@ -70,7 +135,7 @@ function prompt() {
                 view();
                 break;
             case "Add...":
-                //add function
+                add();
                 break;
             case "Update...":
                 //update function
