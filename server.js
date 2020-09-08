@@ -104,19 +104,61 @@ function add() {
                 });
                 break;
             case "Roles":
-                connection.query("SELECT * FROM role", function (err, res) {
+                connection.query("SELECT * FROM department", (err, res) => {
                     if (err) throw err;
-                    console.table(res);
-                    prompt();
+                    const departments = res.map(e => e.name);
+
+                    inq.prompt([
+                        {
+                            type: "input",
+                            message: "Enter Role Name: ",
+                            name: "name"
+                        }, {
+                            type: "input",
+                            message: "Enter Salary: ",
+                            name: "salary"
+                        }, {
+                            type: "list",
+                            message: "Select a department: ",
+                            name: "dept",
+                            choices: departments
+                        }
+                    ]).then(data => {
+                        const dept = res.filter(e => {
+                            if (e.name === data.dept) {
+                                return e.id;
+                            };
+                        });
+                        connection.query("INSERT INTO role SET ?",
+                            {
+                                title: data.name,
+                                salary: data.salary,
+                                department_id: dept[0].id
+                            },
+                            (err, res) => {
+                                if (err) throw err;
+                            });
+                            prompt();
+                    });
                 });
                 break;
             case "Departments":
-                connection.query("SELECT * FROM department", function (err, res) {
-                    if (err) throw err;
-                    console.table(res);
-                    prompt();
+                inq.prompt([
+                    {
+                        type: "input",
+                        message: "Enter Department Name: ",
+                        name: "name"
+                    }
+                ]).then(data => {
+                    connection.query("INSERT INTO department SET ?",
+                        {
+                            name: data.name,
+                        },
+                        (err, res) => {
+                            if (err) throw err;
+                        });
+                        prompt();
                 });
-                break;
         };
     });
 };
@@ -138,10 +180,10 @@ function prompt() {
                 add();
                 break;
             case "Update...":
-                //update function
+                update();
                 break;
             default:
-                //view function
+                view();
                 break;
         };
     });
